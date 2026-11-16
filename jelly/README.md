@@ -1,2 +1,5 @@
 This is the jelly-styled variant; the original game stays at the site root.
 - Tray tiles keep a fixed layout: used tiles stay as dashed empty placeholders and return to their original spot (`tests/tray-stable.html`).
+
+## Sound
+`js/audio.js` (an identical copy lives in each folder) synthesizes every sound live with the Web Audio API: a pop when a jamo goes into a slot, a whoosh when it is taken back, a short chime on a correct answer, and a quiet looping BGM (soft triangle pad + sine "music-box" arpeggio over a C-major-pentatonic 4-chord progression, scheduled endlessly so there is no loop seam). BGM starts only after the first tap/click (autoplay policy) and ducks while the Korean word is spoken. Two toggles (♪ music, 🔔 effects) sit next to the language switch on every screen; settings are stored in `localStorage` key `hangul-blocks-sound` (default: both on). If Web Audio is missing or suspended, sounds are skipped silently. Tests turn audio off with `HangulGame.setTest({audio:false})`; `node tests/audio.test.js` checks the module with a mock AudioContext.

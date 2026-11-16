@@ -1,6 +1,6 @@
 <!DOCTYPE html><html><head><meta charset="utf-8"><title>browser check</title><link rel="stylesheet" href="../css/style.css"></head>
 <body><pre id="out">running…</pre><main id="app"></main>
-<script src="../js/hangul.js"></script><script src="../js/words.js"></script><script src="../js/i18n.js"></script><script src="../js/puzzle.js"></script><script src="../js/fx.js"></script>
+<script src="../js/hangul.js"></script><script src="../js/words.js"></script><script src="../js/i18n.js"></script><script src="../js/puzzle.js"></script><script src="../js/audio.js"></script><script src="../js/fx.js"></script>
 <script>
 // run the game in this page without fx/speech; hash is left empty so it starts on home
 window.__noAutoRoute = true;
@@ -12,7 +12,7 @@ window.__noAutoRoute = true;
   const app=document.getElementById('app');
   const text=()=>app.innerText+' '+((document.getElementById('celebrate')||{}).innerText||'');
   try{
-    G.setTest({fx:false,speech:false});
+    G.setTest({fx:false,speech:false,audio:false});
     if(W.length!==30) errs.push('word count '+W.length);
     // 1) engine assembly
     for(const w of W){

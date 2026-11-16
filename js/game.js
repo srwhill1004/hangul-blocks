@@ -6,7 +6,8 @@
   const byId = (id) => WORDS.find((w) => w.id === id);
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const params = new URLSearchParams(location.search);
-  const testMode = { fx: true, speech: true }; // switched off by tests via HangulGame.setTest
+  const testMode = { fx: true, speech: true, audio: true };
+  const A = window.HangulAudio || { unlock() {}, pop() {}, whoosh() {}, chime() {}, duck() {}, unduck() {}, setBgm() {}, setSfx() {}, setEnabled() {}, onVis() {}, state: () => ({ bgm: false, sfx: false }) }; // switched off by tests via HangulGame.setTest
 
   // ---- language ----
   function readSavedLang() { try { return localStorage.getItem(I.STORE); } catch (e) { return null; } }
@@ -21,7 +22,16 @@
   }
   const langToggle = () => `<div class="lang" role="group" aria-label="${esc(T('langLabel'))}">${I.LANGS.map((l) =>
     `<button class="${l === lang ? 'on' : ''}" data-lang="${l}" aria-pressed="${l === lang}" lang="${l}">${esc(T(l === 'en' ? 'langEn' : 'langZh'))}</button>`).join('')}</div>`;
+  const soundToggle = () => { const s = A.state(), mk = (k, icon, label) =>
+    `<button class="${s[k] ? 'on' : 'off'}" data-snd="${k}" aria-pressed="${s[k]}" aria-label="${esc(T(label))}" title="${esc(T(label))}">${icon}</button>`;
+    return `<div class="snd" role="group" aria-label="${esc(T('soundLabel'))}" title="${esc(T('soundLabel'))}">${mk('bgm', '♪', 'musicLabel')}${mk('sfx', '🔔', 'effectsLabel')}</div>`; };
+  const bindSound = () => document.querySelectorAll('[data-snd]').forEach((b) => b.onclick = () => {
+    const k = b.dataset.snd, on = !A.state()[k];
+    if (k === 'bgm') A.setBgm(on); else { A.setSfx(on); if (on) A.pop(); }
+    document.querySelectorAll('[data-snd="' + k + '"]').forEach((x) => { x.className = on ? 'on' : 'off'; x.setAttribute('aria-pressed', on); });
+  });
   const bindCommon = () => {
+    bindSound();
     app.querySelectorAll('[data-go]').forEach((b) => b.onclick = () => go(b.dataset.go));
     document.querySelectorAll('[data-lang]').forEach((b) => b.onclick = () => setLang(b.dataset.lang));
   };
@@ -63,7 +73,7 @@
   function showHome() {
     screen = 'home'; cur = null; app.className = '';
     const n = progress.done.filter((id) => byId(id)).length;
-    app.innerHTML = `<div class="toprow">${langToggle()}</div><h1>Hangul Blocks</h1>
+    app.innerHTML = `<div class="toprow">${soundToggle()}${langToggle()}</div><h1>Hangul Blocks</h1>
       <p class="sub">${T('homeSub')}</p>
       <p class="howto-home"><b>${esc(T('howToTitle'))}:</b> ${esc(T('howToHome'))}</p>
       <div class="progress-label">${esc(T('wordsCount', { n, m: WORDS.length }))}</div>
@@ -80,7 +90,7 @@
   function showTheme(id) {
     screen = 'theme'; screenArg = id; cur = null; app.className = '';
     const t = THEMES.find((x) => x.id === id), ws = WORDS.filter((w) => w.theme === id);
-    app.innerHTML = `<div class="topbar"><button class="btn" data-go="#/">← ${esc(T('home'))}</button>${langToggle()}</div><h2 class="theme-title">${esc(themeName(t))}</h2>
+    app.innerHTML = `<div class="topbar"><button class="btn" data-go="#/">← ${esc(T('home'))}</button>${soundToggle()}${langToggle()}</div><h2 class="theme-title">${esc(themeName(t))}</h2>
       <div class="wordlist">${ws.map((w) => { const d = progress.done.includes(w.id);
         return `<button class="card ${d ? 'done' : ''}" data-go="#/word/${w.id}" ${d ? `aria-label="${esc(shortMeaning(w))} — ${esc(T('complete'))}"` : ''}><span class="emo">${w.emoji}</span>${esc(shortMeaning(w))}${d ? ' ✓' : ''}</button>`; }).join('')}</div>`;
     bindCommon();
@@ -112,7 +122,7 @@
         <div class="grid ${s.layout}">${slot('cho')}${slot('jung')}${s.hasJong ? slot('jong') : ''}</div></div>`;
     }).join('');
     app.className = 'puzzle' + (sylls.length >= 4 ? ' many' : '');
-    app.innerHTML = `<div class="ptop"><div class="topbar"><button class="btn" data-go="#/theme/${word.theme}">← ${esc(T('back'))}</button>${langToggle()}
+    app.innerHTML = `<div class="ptop"><div class="topbar"><button class="btn" data-go="#/theme/${word.theme}">← ${esc(T('back'))}</button>${soundToggle()}${langToggle()}
       <button class="btn" id="hint" ${cur.solved ? 'disabled' : ''}>${esc(T('hint'))} (${progress.hints[word.id] || 0})</button></div>
       <div class="wordno">${esc(T('wordNofM', { n: idx + 1, m: list.length }))}</div>
       <div class="pic" role="img" aria-label="${esc(meaning(word))}">${word.emoji}</div>
@@ -140,6 +150,7 @@
     const tg = P.place(cur.sylls, tile.jamo);
     if (!tg) return;
     cur.sylls[tg.si].ids[tg.kind].push(tileId);
+    A.pop();
     if (P.status(cur.sylls[tg.si]) === 'wrong') cur.shake = tg.si;
     if (P.isSolved(cur.sylls, cur.word.korean)) {
       cur.solved = true; cur.shake = null;
@@ -153,24 +164,25 @@
   // tap a placed jamo -> back to the tray
   function onSlot(si, kind) {
     if (cur.solved) return;
-    if (P.remove(cur.sylls, si, kind) !== null) { cur.sylls[si].ids[kind].pop(); render(); }
+    if (P.remove(cur.sylls, si, kind) !== null) { cur.sylls[si].ids[kind].pop(); A.whoosh(); render(); }
   }
 
   // ---- celebration: big message + canvas fireworks + speech + Next Stage ----
   function celebrate() {
     const still = params.get('still') === '1';
     const word = cur.word;
+    A.chime();
     if (testMode.fx) window.HangulFx.celebrate(still ? { still: 350 } : {});
     if (still) { cur.nextReady = true; renderCelebration(); return; }
     const ready = () => { if (cur && cur.word === word && !cur.nextReady) { cur.nextReady = true; updateNext(); } };
     speak(word.korean, ready);
   }
   function speak(text, done) {
-    let fired = false; const fin = () => { if (!fired) { fired = true; if (done) done(); } };
+    let fired = false, ducking = false; const fin = () => { if (!fired) { fired = true; if (ducking) A.unduck(); if (done) done(); } };
     try {
       if (testMode.speech && 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined') {
         const u = new SpeechSynthesisUtterance(text); u.lang = 'ko-KR'; u.rate = 0.85;
-        u.onend = fin; u.onerror = fin;
+        u.onend = fin; u.onerror = fin; ducking = true; A.duck();
         window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
         setTimeout(fin, 1800); return;
       }
@@ -190,15 +202,18 @@
     let o = document.getElementById('celebrate');
     if (!o) { o = document.createElement('div'); o.id = 'celebrate'; document.body.appendChild(o); }
     o.className = 'celebrate' + (params.get('still') === '1' ? ' still' : ''); o.setAttribute('role', 'dialog'); o.setAttribute('aria-label', T('celebrationAria'));
-    o.innerHTML = `<div class="toprow">${langToggle()}</div><div class="cel-body"><div class="big" lang="${lang}">${esc(T('correct'))}</div>
+    o.innerHTML = `<div class="toprow">${soundToggle()}${langToggle()}</div><div class="cel-body"><div class="big" lang="${lang}">${esc(T('correct'))}</div>
       <div class="ko">${esc(word.korean)}</div><div class="rom">${esc(word.romanization)}</div><div class="cel-meaning">${esc(meaning(word))}</div>
       <div class="actions"><button class="btn" id="say">🔊 ${esc(T('listen'))}</button>
       <button class="btn primary ${cur.nextReady ? 'ready' : ''}" id="next" ${cur.nextReady ? '' : 'disabled'}>${esc(T(last ? 'finish' : 'nextStage'))}</button></div></div>`;
-    o.querySelectorAll('[data-lang]').forEach((b) => b.onclick = () => setLang(b.dataset.lang));
+    o.querySelectorAll('[data-lang]').forEach((b) => b.onclick = () => setLang(b.dataset.lang)); bindSound();
     document.getElementById('say').onclick = () => speak(word.korean);
     document.getElementById('next').onclick = () => go(last ? '#/' : '#/word/' + list[idx + 1].id);
   }
 
-  window.HangulGame = { route, setTest: (o) => Object.assign(testMode, o), open: (id) => showPuzzle(byId(id)), setLang, getLang: () => lang, state: () => cur };
+  // audio: first user gesture unlocks Web Audio (autoplay policy) and starts BGM; never throws
+  ['pointerdown', 'touchend', 'keydown', 'click'].forEach((ev) => document.addEventListener(ev, () => A.unlock(), { capture: true, passive: true }));
+  document.addEventListener('visibilitychange', () => A.onVis(document.hidden));
+  window.HangulGame = { route, setTest: (o) => { Object.assign(testMode, o); if ('audio' in o) A.setEnabled(!!o.audio); return testMode; }, open: (id) => showPuzzle(byId(id)), setLang, getLang: () => lang, state: () => cur };
   if (!window.__noAutoRoute) route();
 })();

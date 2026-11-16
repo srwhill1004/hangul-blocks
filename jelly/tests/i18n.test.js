@@ -46,7 +46,7 @@ t('language detection', () => {
 });
 t('index.html loads scripts and has noindex', () => {
   const h = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
-  for (const f of ['i18n', 'puzzle', 'fx', 'game']) assert.ok(h.includes(`js/${f}.js`), f);
+  for (const f of ['i18n', 'puzzle', 'audio', 'fx', 'game']) assert.ok(h.includes(`js/${f}.js`), f);
   assert.ok(/noindex/.test(h));
 });
 console.log(`${pass} passed, ${fail} failed`);

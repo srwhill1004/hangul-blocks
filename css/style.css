@@ -80,3 +80,10 @@ button{font:inherit;color:inherit;cursor:pointer}
 @keyframes pop{0%{transform:scale(.3);opacity:0}100%{transform:scale(1);opacity:1}}
 @keyframes fadein{from{opacity:0}to{opacity:1}}
 .celebrate.still,.celebrate.still *{animation:none!important}
+/* sound toggles (music / effects) */
+.toprow{gap:8px;align-items:center}
+.snd{display:inline-flex;border:2px solid var(--wood-d);border-radius:12px;overflow:hidden;flex:none}
+.snd button{min-height:40px;min-width:38px;padding:2px 6px;border:0;background:transparent;font-size:1rem;line-height:1}
+.snd button.on{background:var(--wood-d);color:#fff}
+.snd button.off{opacity:.55;text-decoration:line-through}
+@media (max-width:400px){.topbar{gap:4px}.topbar .btn{padding:8px 8px}.lang button{min-width:40px;padding:4px 6px}.snd button{min-width:34px}}

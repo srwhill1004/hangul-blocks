@@ -1,6 +1,6 @@
 <!DOCTYPE html><html><head><meta charset="utf-8"><title>tray stable</title><link rel="stylesheet" href="../css/style.css"></head>
 <body><pre id="out">running…</pre><style>*{animation:none!important;transition:none!important}</style><main id="app"></main>
-<script src="../js/hangul.js"></script><script src="../js/words.js"></script><script src="../js/i18n.js"></script><script src="../js/puzzle.js"></script><script src="../js/fx.js"></script>
+<script src="../js/hangul.js"></script><script src="../js/words.js"></script><script src="../js/i18n.js"></script><script src="../js/puzzle.js"></script><script src="../js/audio.js"></script><script src="../js/fx.js"></script>
 <script>window.__noAutoRoute = true;</script>
 <script src="../js/game.js"></script>
 <script>
@@ -10,7 +10,7 @@
   const snap=()=>{ const m={}; app.querySelectorAll('.tile').forEach(el=>{ const r=el.getBoundingClientRect(); m[el.dataset.tile]={x:r.x,y:r.y,w:r.width,h:r.height,used:el.classList.contains('used'),text:el.textContent}; }); return m; };
   const same=(a,b)=>['x','y','w','h'].every(k=>Math.abs(a[k]-b[k])<=1);
   try{
-    G.setTest({fx:false,speech:false});
+    G.setTest({fx:false,speech:false,audio:false});
     for(const id of ['mul','sagwa','hakgyo']){
       G.open(id); await wait(700); // let entry animations finish
       const s0=snap(), ids=Object.keys(s0);
