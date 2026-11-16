@@ -121,8 +121,8 @@
       <p class="howto">${esc(T('puzzleTip'))}</p>
       <div class="syllables">${sylHtml}</div>
       <div class="msg" role="status">${anyWrong ? esc(T('notQuite')) : ''}</div></div>
-      <div class="pdock"><div class="tray" role="group" aria-label="${esc(T('trayAria'))}">${cur.tiles.map((t) => used.has(t.id) ? `<button class="tile${/[ㅏ-ㅣ]/.test(t.jamo) ? ' v' : ''} used" data-tile="${t.id}" disabled tabindex="-1" aria-hidden="true"></button>` : `<button class="tile${/[ㅏ-ㅣ]/.test(t.jamo) ? ' v' : ''}" data-tile="${t.id}" aria-label="${esc(T('tileAria', { jamo: t.jamo }))}">${esc(t.jamo)}</button>`).join('')}</div></div>`;
-    cur.shake = null; popSlot = null;
+      <div class="pdock"><div class="tray${cur.entered ? '' : ' enter'}" role="group" aria-label="${esc(T('trayAria'))}">${cur.tiles.map((t) => used.has(t.id) ? `<button class="tile${/[ㅏ-ㅣ]/.test(t.jamo) ? ' v' : ''} used" data-tile="${t.id}" disabled tabindex="-1" aria-hidden="true"></button>` : `<button class="tile${/[ㅏ-ㅣ]/.test(t.jamo) ? ' v' : ''}" data-tile="${t.id}" aria-label="${esc(T('tileAria', { jamo: t.jamo }))}">${esc(t.jamo)}</button>`).join('')}</div></div>`;
+    cur.shake = null; popSlot = null; cur.entered = true;
     bindCommon();
     const pt = app.querySelector('.ptop'); if (pt) pt.scrollTop = prevScroll;
     const hb = document.getElementById('hint');
