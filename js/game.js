@@ -29,9 +29,11 @@
 
   // ---- screens ----
   function showHome() {
+    app.className = '';
     const n = progress.done.filter((id) => byId(id)).length;
     app.innerHTML = `<h1>Hangul Blocks</h1>
       <p class="sub">Build Korean words from letter blocks.<br>Pick a picture, drag or tap the blocks, and learn Hangul!</p>
+      <p class="sub"><b>How to play:</b> tap a block, then a slot to build the word.</p>
       <div class="progress-label">${n}/${WORDS.length} words</div>
       <div class="bar"><i style="width:${(n / WORDS.length) * 100}%"></i></div>
       ${THEMES.map((t) => { const ws = WORDS.filter((w) => w.theme === t.id); const d = ws.filter((w) => progress.done.includes(w.id)).length;
@@ -44,6 +46,7 @@
   }
 
   function showTheme(id) {
+    app.className = '';
     const t = THEMES.find((x) => x.id === id), ws = WORDS.filter((w) => w.theme === id);
     app.innerHTML = `<div class="topbar"><button class="btn" data-go="#/">← Home</button><h2>${esc(t.name)}</h2><span></span></div>
       <div class="wordlist">${ws.map((w) => `<button class="card ${progress.done.includes(w.id) ? 'done' : ''}" data-go="#/word/${w.id}"><span class="emo">${w.emoji}</span>${esc(w.english.split(' (')[0])}${progress.done.includes(w.id) ? ' ✓' : ''}</button>`).join('')}</div>`;
@@ -72,7 +75,7 @@
   function render() {
     const { word, sylls } = cur, used = usedIds();
     const list = WORDS.filter((w) => w.theme === word.theme), idx = list.indexOf(word);
-    const labels = { cho: 'start', jung: 'vowel', jong: 'end' };
+    const labels = { cho: 'initial', jung: 'vowel', jong: 'final' };
     const sylHtml = sylls.map((s, si) => {
       const st = status(s), text = H.slotSyllable(s.slots);
       const slot = (k) => `<button class="slot ${s.slots[k].length ? 'filled' : ''}" data-syl="${si}" data-kind="${k}" aria-label="syllable ${si + 1} ${labels[k]} slot">${s.slots[k].length ? esc(H.slotDisplay(k, s.slots[k])) : `<small>${labels[k]}</small>`}</button>`;
@@ -80,19 +83,21 @@
         <div class="grid ${s.layout}">${slot('cho')}${slot('jung')}${s.hasJong ? slot('jong').replace('class="slot', 'class="jong slot') : ''}</div></div>`;
     }).join('');
     const doneCount = progress.done.filter((id) => list.some((w) => w.id === id)).length;
-    app.innerHTML = `<div class="topbar"><button class="btn" data-go="#/theme/${word.theme}">← Back</button>
+    app.className = 'puzzle' + (sylls.length >= 4 ? ' many' : '');
+    app.innerHTML = `<div class="ptop"><div class="topbar"><button class="btn" data-go="#/theme/${word.theme}">← Back</button>
       <span>Word ${idx + 1} of ${list.length}</span><button class="btn" id="hint" ${cur.solved ? 'disabled' : ''}>Hint (${progress.hints[word.id] || 0})</button></div>
       <div class="pic" role="img" aria-label="${esc(word.english)}">${word.emoji}</div>
       <div class="meaning">${esc(word.english)}</div>
       <div class="hintline">${cur.hint || cur.solved ? esc(word.romanization) : ''}</div>
+      <p class="howto">Tap a block, then a slot. Put ㅗ and ㅏ together in the same vowel slot to make ㅘ.</p>
       <div class="syllables">${sylHtml}</div>
-      <div class="msg">${esc(cur.msg)}</div>
-      ${cur.solved ? `<div class="success"><div class="ko">${esc(word.korean)}</div><div class="rom">${esc(word.romanization)}</div><div>Great job! ✓</div>
+      <div class="msg">${esc(cur.msg)}</div></div>
+      <div class="pdock">${cur.solved ? `<div class="success"><div class="ko">${esc(word.korean)}</div><div class="rom">${esc(word.romanization)}</div><div>Great job! ✓</div>
         <div class="actions" style="margin-top:8px"><button class="btn" id="say">🔊 Listen</button><button class="btn primary" id="next">${idx + 1 < list.length ? 'Next' : 'Finish'}</button></div></div>`
-      : `<div class="tray">${cur.tiles.filter((t) => !used.has(t.id)).map((t) => `<button class="tile ${cur.selected === t.id ? 'sel' : ''}" data-tile="${t.id}">${esc(t.jamo)}</button>`).join('')}</div>`}`;
+      : `<div class="tray">${cur.tiles.filter((t) => !used.has(t.id)).map((t) => `<button class="tile ${cur.selected === t.id ? 'sel' : ''}" data-tile="${t.id}">${esc(t.jamo)}</button>`).join('')}</div>`}</div>`;
     app.querySelectorAll('[data-go]').forEach((b) => b.onclick = () => go(b.dataset.go));
     const hb = document.getElementById('hint');
-    if (hb) hb.onclick = () => { cur.hint = true; progress.hints[word.id] = (progress.hints[word.id] || 0) + 1; save(); render(); };
+    if (hb) hb.onclick = () => { if (!cur.hint) { cur.hint = true; progress.hints[word.id] = (progress.hints[word.id] || 0) + 1; save(); } render(); };
     if (cur.solved) {
       document.getElementById('say').onclick = () => speak(word.korean);
       document.getElementById('next').onclick = () => go(idx + 1 < list.length ? '#/word/' + list[idx + 1].id : '#/theme/' + word.theme);

@@ -3,9 +3,9 @@
 A casual web puzzle for learners of Korean. See a picture and its English meaning, then build the Korean word from consonant and vowel blocks.
 
 ## How to play
-- Tap a block to select it, then tap an empty slot (start / vowel / end). Or drag a block onto a slot.
+- Tap a block to select it, then tap an empty slot (initial / vowel / final). Or drag a block onto a slot.
 - Tap a filled slot to return its block to the tray.
-- Compound vowels are built from parts in the vowel slot (ㅗ+ㅏ=ㅘ). Compound final consonants are built in the end slot (ㄴ+ㅎ=ㄶ). Double consonants (ㄲ ㄸ ㅃ ㅆ ㅉ) are single blocks.
+- Compound vowels are built from parts in the vowel slot (ㅗ+ㅏ=ㅘ). Compound final consonants are built in the final slot (ㄴ+ㅎ=ㄶ). Double consonants (ㄲ ㄸ ㅃ ㅆ ㅉ) are single blocks.
 - Hint shows the romanization. Progress is saved in `localStorage` (`hangul-blocks-progress`); use **Reset progress** on the home screen to clear it.
 
 ## Run locally

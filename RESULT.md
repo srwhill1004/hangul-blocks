@@ -54,10 +54,12 @@
 
 ## 브라우저 검사
 - `google-chrome --headless=new --dump-dom tests/browser-check.html` → **BROWSER_CHECK_PASS** (30단어 자동 조립)
-- 스크린샷(390×844, 사과 퍼즐): `/workspace/dev/hangul-puzzle/screenshot-mobile.png`
+- 스크린샷(390×844): 사과 `/workspace/dev/hangul-puzzle/screenshot-mobile.png`, 안녕하세요 `/workspace/dev/hangul-puzzle/screenshot-hello.png` (트레이 타일 16개 모두 화면 안에 표시 확인)
 - 괜찮아요 화면 dump-dom 시 콘솔 에러 0건
 
 ## 알려진 한계
+- 퍼즐 화면은 위쪽(그림·음절 칸)만 스크롤, 자모 트레이는 하단 고정. 타일이 매우 많으면(5음절 초과 등) 트레이가 높아져 위쪽 스크롤 영역이 좁아짐
+- 슬롯 라벨은 initial/vowel/final (초성/중성/종성)
 - 실제 터치 기기·드래그 동작은 헤드리스에서 자동 검증하지 못함(코드 구현만, 수동 확인 필요)
 - 겹모음 슬롯은 실제 글자 모양 대신 단일 가로 칸으로 단순화
 - 한국어 음성은 기기·브라우저 음성 지원에 의존. 이모지 모양은 OS별로 다름

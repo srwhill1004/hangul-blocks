@@ -47,3 +47,18 @@ button{font:inherit;color:inherit;cursor:pointer}
 .success .rom{font-size:1.2rem;color:var(--ok);font-weight:700}
 .actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 @keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+
+#app.puzzle{height:100vh;height:100dvh;min-height:0;display:flex;flex-direction:column;padding:0}
+.ptop{flex:1 1 auto;min-height:0;overflow-y:auto;padding:12px 16px 8px}
+.pdock{flex:none;padding:0 16px calc(10px + env(safe-area-inset-bottom))}
+.pdock .tray{margin:0}
+.pdock .success{margin:0}
+.howto{margin:0 0 4px;text-align:center;color:var(--muted);font-size:.85rem;line-height:1.3}
+.puzzle .pic{font-size:4rem}
+.puzzle .meaning{font-size:1.2rem;margin:2px 0 4px}
+.puzzle .msg{min-height:1.2em}
+.puzzle.many .syllables{gap:8px 8px;margin:6px 0}
+.puzzle.many .syl{width:92px;padding:4px}
+.puzzle.many .slot{min-height:40px;min-width:40px;font-size:1.4rem}
+.puzzle.many .result{height:1.7rem;line-height:1.7rem;font-size:1.3rem}
+.puzzle.many .pic{font-size:3rem}
