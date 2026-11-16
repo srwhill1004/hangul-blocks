@@ -6,15 +6,18 @@
   const THEMES = [
   {
     "id": "food",
-    "name": "Food"
+    "name": "Food",
+    "chinese": "食物"
   },
   {
     "id": "greetings",
-    "name": "Greetings"
+    "name": "Greetings",
+    "chinese": "问候"
   },
   {
     "id": "everyday",
-    "name": "K-drama & Everyday"
+    "name": "K-drama & Everyday",
+    "chinese": "韩剧与日常"
   }
 ];
   const WORDS = [
@@ -24,6 +27,7 @@
     "korean": "밥",
     "romanization": "bap",
     "english": "rice; a meal",
+    "chinese": "米饭；一餐",
     "emoji": "🍚"
   },
   {
@@ -32,6 +36,7 @@
     "korean": "물",
     "romanization": "mul",
     "english": "water",
+    "chinese": "水",
     "emoji": "💧"
   },
   {
@@ -40,6 +45,7 @@
     "korean": "김치",
     "romanization": "gimchi",
     "english": "kimchi",
+    "chinese": "韩国泡菜",
     "emoji": "🥬"
   },
   {
@@ -48,6 +54,7 @@
     "korean": "비빔밥",
     "romanization": "bibimbap",
     "english": "bibimbap (rice mixed with vegetables and meat)",
+    "chinese": "拌饭（蔬菜和肉拌米饭）",
     "emoji": "🥗"
   },
   {
@@ -56,6 +63,7 @@
     "korean": "떡볶이",
     "romanization": "tteokbokki",
     "english": "tteokbokki (spicy rice cakes)",
+    "chinese": "炒年糕",
     "emoji": "🌶️"
   },
   {
@@ -64,6 +72,7 @@
     "korean": "라면",
     "romanization": "ramyeon",
     "english": "ramyeon (instant noodles)",
+    "chinese": "拉面（方便面）",
     "emoji": "🍜"
   },
   {
@@ -72,6 +81,7 @@
     "korean": "불고기",
     "romanization": "bulgogi",
     "english": "bulgogi (marinated grilled beef)",
+    "chinese": "烤肉（韩式腌制牛肉）",
     "emoji": "🥩"
   },
   {
@@ -80,6 +90,7 @@
     "korean": "사과",
     "romanization": "sagwa",
     "english": "apple",
+    "chinese": "苹果",
     "emoji": "🍎"
   },
   {
@@ -88,6 +99,7 @@
     "korean": "김밥",
     "romanization": "gimbap",
     "english": "gimbap (seaweed rice roll)",
+    "chinese": "紫菜包饭",
     "emoji": "🍙"
   },
   {
@@ -96,6 +108,7 @@
     "korean": "빵",
     "romanization": "ppang",
     "english": "bread",
+    "chinese": "面包",
     "emoji": "🍞"
   },
   {
@@ -104,6 +117,7 @@
     "korean": "안녕",
     "romanization": "annyeong",
     "english": "hi (informal)",
+    "chinese": "嗨（非正式）",
     "emoji": "👋"
   },
   {
@@ -112,6 +126,7 @@
     "korean": "안녕하세요",
     "romanization": "annyeonghaseyo",
     "english": "hello",
+    "chinese": "你好",
     "emoji": "🙋"
   },
   {
@@ -120,6 +135,7 @@
     "korean": "감사합니다",
     "romanization": "gamsahamnida",
     "english": "thank you",
+    "chinese": "谢谢",
     "emoji": "🙏"
   },
   {
@@ -128,6 +144,7 @@
     "korean": "네",
     "romanization": "ne",
     "english": "yes",
+    "chinese": "是",
     "emoji": "✅"
   },
   {
@@ -136,6 +153,7 @@
     "korean": "아니요",
     "romanization": "aniyo",
     "english": "no",
+    "chinese": "不是",
     "emoji": "🙅"
   },
   {
@@ -144,6 +162,7 @@
     "korean": "미안해요",
     "romanization": "mianhaeyo",
     "english": "sorry",
+    "chinese": "对不起",
     "emoji": "😔"
   },
   {
@@ -152,6 +171,7 @@
     "korean": "주세요",
     "romanization": "juseyo",
     "english": "please (give me)",
+    "chinese": "请给我",
     "emoji": "🤲"
   },
   {
@@ -160,6 +180,7 @@
     "korean": "괜찮아요",
     "romanization": "gwaenchanayo",
     "english": "it's okay",
+    "chinese": "没关系",
     "emoji": "👌"
   },
   {
@@ -168,6 +189,7 @@
     "korean": "사랑해요",
     "romanization": "saranghaeyo",
     "english": "I love you",
+    "chinese": "我爱你",
     "emoji": "🥰"
   },
   {
@@ -176,6 +198,7 @@
     "korean": "반갑습니다",
     "romanization": "bangapseumnida",
     "english": "nice to meet you",
+    "chinese": "很高兴见到你",
     "emoji": "🤝"
   },
   {
@@ -184,6 +207,7 @@
     "korean": "사랑",
     "romanization": "sarang",
     "english": "love",
+    "chinese": "爱",
     "emoji": "❤️"
   },
   {
@@ -192,6 +216,7 @@
     "korean": "친구",
     "romanization": "chingu",
     "english": "friend",
+    "chinese": "朋友",
     "emoji": "👫"
   },
   {
@@ -200,6 +225,7 @@
     "korean": "가족",
     "romanization": "gajok",
     "english": "family",
+    "chinese": "家人",
     "emoji": "👨‍👩‍👧"
   },
   {
@@ -208,6 +234,7 @@
     "korean": "집",
     "romanization": "jip",
     "english": "house; home",
+    "chinese": "家；房子",
     "emoji": "🏠"
   },
   {
@@ -216,6 +243,7 @@
     "korean": "학교",
     "romanization": "hakgyo",
     "english": "school",
+    "chinese": "学校",
     "emoji": "🏫"
   },
   {
@@ -224,6 +252,7 @@
     "korean": "전화",
     "romanization": "jeonhwa",
     "english": "phone; a call",
+    "chinese": "电话",
     "emoji": "📱"
   },
   {
@@ -232,6 +261,7 @@
     "korean": "마음",
     "romanization": "maeum",
     "english": "heart; mind",
+    "chinese": "心；心情",
     "emoji": "💛"
   },
   {
@@ -240,6 +270,7 @@
     "korean": "꿈",
     "romanization": "kkum",
     "english": "dream",
+    "chinese": "梦",
     "emoji": "💭"
   },
   {
@@ -248,6 +279,7 @@
     "korean": "오빠",
     "romanization": "oppa",
     "english": "older brother (said by a woman); also a familiar term",
+    "chinese": "哥哥（女性对年长男性的称呼；也可作亲昵称呼）",
     "emoji": "🧑"
   },
   {
@@ -256,6 +288,7 @@
     "korean": "운명",
     "romanization": "unmyeong",
     "english": "fate; destiny",
+    "chinese": "命运",
     "emoji": "✨"
   }
 ];

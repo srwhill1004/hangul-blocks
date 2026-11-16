@@ -1,13 +1,22 @@
-<!DOCTYPE html><html><head><meta charset="utf-8"><title>browser check</title></head>
-<body><pre id="out">running…</pre>
-<script src="../js/hangul.js"></script><script src="../js/words.js"></script>
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>browser check</title><link rel="stylesheet" href="../css/style.css"></head>
+<body><pre id="out">running…</pre><main id="app"></main>
+<script src="../js/hangul.js"></script><script src="../js/words.js"></script><script src="../js/i18n.js"></script><script src="../js/puzzle.js"></script><script src="../js/fx.js"></script>
+<script>
+// run the game in this page without fx/speech; hash is left empty so it starts on home
+window.__noAutoRoute = true;
+</script>
+<script src="../js/game.js"></script>
 <script>
 (function(){
-  const out=document.getElementById('out'), H=window.Hangul, W=window.HangulData.WORDS, errs=[];
+  const out=document.getElementById('out'), H=window.Hangul, W=window.HangulData.WORDS, I=window.HangulI18n, G=window.HangulGame, errs=[];
+  const app=document.getElementById('app');
+  const text=()=>app.innerText+' '+((document.getElementById('celebrate')||{}).innerText||'');
   try{
+    G.setTest({fx:false,speech:false});
     if(W.length!==30) errs.push('word count '+W.length);
+    // 1) engine assembly
     for(const w of W){
-      const tiles=H.buildTiles(w.korean); const pool=tiles.slice(); let built='';
+      const pool=H.buildTiles(w.korean); let built='';
       for(const s of Array.from(w.korean)){
         const slots=H.newSlots(), d=H.decomposeSyllable(s);
         const seq=[['cho',d.cho]].concat(H.splitVowel(d.jung).map(j=>['jung',j]),H.splitFinal(d.jong).map(j=>['jong',j]));
@@ -17,7 +26,42 @@
       }
       if(built!==w.korean) errs.push(w.id+' built '+built+' != '+w.korean);
     }
-  }catch(e){errs.push('exception '+e.message);}
-  out.textContent=errs.length?'BROWSER_CHECK_FAIL '+errs.join('; '):'BROWSER_CHECK_PASS 30 words assembled';
+    // 2) DOM: tap tiles in order for all 30 words, in both languages
+    for(const lang of ['en','zh']){
+      G.setLang(lang);
+      for(const w of W){
+        G.open(w.id);
+        if(document.getElementById('check')||/确认|Check|Submit/.test(text())) errs.push(w.id+' has a confirm button');
+        const order=window.HangulPuzzle.solveOrder(w.korean);
+        for(let i=0;i<order.length;i++){
+          const tile=[...app.querySelectorAll('.tile')].find(b=>b.textContent===order[i]);
+          if(!tile){errs.push(lang+' '+w.id+' no tile '+order[i]);break;}
+          if(document.getElementById('celebrate')) errs.push(w.id+' celebration before last jamo');
+          tile.click();
+        }
+        const cel=document.getElementById('celebrate');
+        if(!cel){errs.push(lang+' '+w.id+' no celebration after last jamo');continue;}
+        if(!cel.querySelector('.big')||cel.querySelector('.big').textContent!==I.STRINGS[lang].correct) errs.push(lang+' '+w.id+' wrong big text');
+        if(app.querySelector('.tile')===null&&false) errs.push('x');
+        cel.remove();
+      }
+    }
+    // 3) a wrong full answer gives no celebration; slot tap returns tile
+    G.setLang('en'); G.open('mul');
+    for(const j of ['ㅁ','ㅜ',null]){ const ts=[...app.querySelectorAll('.tile')]; const t=j?ts.find(b=>b.textContent===j):ts.find(b=>b.textContent!=='ㄹ'); if(t) t.click(); else errs.push('mul tile '+j); }
+    if(document.getElementById('celebrate')) errs.push('celebration on wrong answer');
+    if(!app.querySelector('.syl.wrong')) errs.push('no wrong marker');
+    if(app.querySelector('.msg').textContent!==I.STRINGS.en.notQuite) errs.push('no notQuite msg');
+    const before=app.querySelectorAll('.tile').length; app.querySelector('.slot.jong').click();
+    if(app.querySelectorAll('.tile').length!==before+1) errs.push('slot tap did not return tile');
+    // 4) i18n: every key present; zh screens have no stray English
+    for(const k of Object.keys(I.STRINGS.en)) if(!I.STRINGS.zh[k]) errs.push('zh missing '+k);
+    G.setLang('zh'); G.open('sagwa');
+    const strip=s=>s.replace(/Hangul Blocks|English/g,'');
+    if(/[A-Za-z]{2,}/.test(strip(app.innerText))) errs.push('English left in zh puzzle: '+strip(app.innerText).match(/[A-Za-z]{2,}/)[0]);
+    if(app.innerText.indexOf('苹果')<0) errs.push('zh meaning missing');
+    location.hash='#/'; 
+  }catch(e){errs.push('exception '+e.message+' '+(e.stack||'').split('\n')[1]);}
+  out.textContent=errs.length?'BROWSER_CHECK_FAIL '+errs.join('; '):'BROWSER_CHECK_PASS 30 words assembled; 30 words tap-solved in en+zh; i18n ok';
 })();
 </script></body></html>

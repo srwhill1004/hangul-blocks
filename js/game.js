@@ -1,10 +1,33 @@
 (function () {
   'use strict';
-  const H = window.Hangul, { WORDS, THEMES } = window.HangulData;
+  const H = window.Hangul, P = window.HangulPuzzle, I = window.HangulI18n, { WORDS, THEMES } = window.HangulData;
   const KEY = 'hangul-blocks-progress';
   const app = document.getElementById('app');
   const byId = (id) => WORDS.find((w) => w.id === id);
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const params = new URLSearchParams(location.search);
+  const testMode = { fx: true, speech: true }; // switched off by tests via HangulGame.setTest
+
+  // ---- language ----
+  function readSavedLang() { try { return localStorage.getItem(I.STORE); } catch (e) { return null; } }
+  let lang = I.detect(params.get('lang') || readSavedLang(), navigator);
+  const T = (key, vars) => I.t(lang, key, vars);
+  function applyLangToDoc() { document.documentElement.lang = lang === 'zh' ? 'zh-Hans' : 'en'; document.title = T('pageTitle'); }
+  function setLang(l) {
+    if (!I.LANGS.includes(l) || l === lang) return;
+    lang = l;
+    try { localStorage.setItem(I.STORE, l); } catch (e) {}
+    applyLangToDoc(); refresh();
+  }
+  const langToggle = () => `<div class="lang" role="group" aria-label="${esc(T('langLabel'))}">${I.LANGS.map((l) =>
+    `<button class="${l === lang ? 'on' : ''}" data-lang="${l}" aria-pressed="${l === lang}" lang="${l}">${esc(T(l === 'en' ? 'langEn' : 'langZh'))}</button>`).join('')}</div>`;
+  const bindCommon = () => {
+    app.querySelectorAll('[data-go]').forEach((b) => b.onclick = () => go(b.dataset.go));
+    document.querySelectorAll('[data-lang]').forEach((b) => b.onclick = () => setLang(b.dataset.lang));
+  };
+  const meaning = (w) => (lang === 'zh' ? w.chinese : w.english);
+  const shortMeaning = (w) => meaning(w).split(/ \(|（/)[0];
+  const themeName = (t) => (lang === 'zh' ? t.chinese : t.name);
 
   // ---- progress ----
   function load() {
@@ -15,153 +38,167 @@
   let progress = load();
 
   // ---- routing ----
+  let screen = 'home', cur = null;
   function route() {
+    clearCelebration();
     let h = location.hash.replace(/^#\/?/, '');
-    const q = new URLSearchParams(location.search).get('word');
+    const q = params.get('word');
     if (!h && q) h = 'word/' + q;
     const [kind, id] = h.split('/');
+    applyLangToDoc();
     if (kind === 'word' && byId(id)) return showPuzzle(byId(id));
     if (kind === 'theme' && THEMES.some((t) => t.id === id)) return showTheme(id);
     showHome();
   }
   const go = (hash) => { if (location.hash === hash) route(); else location.hash = hash; };
   window.addEventListener('hashchange', route);
+  function refresh() { // redraw current screen in the new language, keeping state
+    if (screen === 'puzzle' && cur) return render();
+    if (screen === 'theme') return showTheme(screenArg);
+    showHome();
+  }
+  let screenArg = null;
 
   // ---- screens ----
   function showHome() {
-    app.className = '';
+    screen = 'home'; cur = null; app.className = '';
     const n = progress.done.filter((id) => byId(id)).length;
-    app.innerHTML = `<h1>Hangul Blocks</h1>
-      <p class="sub">Build Korean words from letter blocks.<br>Pick a picture, drag or tap the blocks, and learn Hangul!</p>
-      <p class="sub"><b>How to play:</b> tap a block, then a slot to build the word.</p>
-      <div class="progress-label">${n}/${WORDS.length} words</div>
+    app.innerHTML = `<div class="toprow">${langToggle()}</div><h1>Hangul Blocks</h1>
+      <p class="sub">${T('homeSub')}</p>
+      <p class="howto-home"><b>${esc(T('howToTitle'))}:</b> ${esc(T('howToHome'))}</p>
+      <div class="progress-label">${esc(T('wordsCount', { n, m: WORDS.length }))}</div>
       <div class="bar"><i style="width:${(n / WORDS.length) * 100}%"></i></div>
       ${THEMES.map((t) => { const ws = WORDS.filter((w) => w.theme === t.id); const d = ws.filter((w) => progress.done.includes(w.id)).length;
-        return `<button class="card" data-go="#/theme/${t.id}"><b>${esc(t.name)}</b><span>${d}/${ws.length} complete</span></button>`; }).join('')}
-      <p style="text-align:center"><button class="btn ghost" id="reset">Reset progress</button></p>`;
-    app.querySelectorAll('[data-go]').forEach((b) => b.onclick = () => go(b.dataset.go));
+        return `<button class="card" data-go="#/theme/${t.id}"><b>${esc(themeName(t))}</b><span>${esc(T('themeProgress', { d, m: ws.length }))}</span></button>`; }).join('')}
+      <p style="text-align:center"><button class="btn ghost" id="reset">${esc(T('resetProgress'))}</button></p>`;
+    bindCommon();
     document.getElementById('reset').onclick = () => {
-      if (confirm('Reset all progress? Your completed words will be cleared.')) { progress = { done: [], hints: {} }; save(); showHome(); }
+      if (confirm(T('resetConfirm'))) { progress = { done: [], hints: {} }; save(); showHome(); }
     };
   }
 
   function showTheme(id) {
-    app.className = '';
+    screen = 'theme'; screenArg = id; cur = null; app.className = '';
     const t = THEMES.find((x) => x.id === id), ws = WORDS.filter((w) => w.theme === id);
-    app.innerHTML = `<div class="topbar"><button class="btn" data-go="#/">← Home</button><h2>${esc(t.name)}</h2><span></span></div>
-      <div class="wordlist">${ws.map((w) => `<button class="card ${progress.done.includes(w.id) ? 'done' : ''}" data-go="#/word/${w.id}"><span class="emo">${w.emoji}</span>${esc(w.english.split(' (')[0])}${progress.done.includes(w.id) ? ' ✓' : ''}</button>`).join('')}</div>`;
-    app.querySelectorAll('[data-go]').forEach((b) => b.onclick = () => go(b.dataset.go));
+    app.innerHTML = `<div class="topbar"><button class="btn" data-go="#/">← ${esc(T('home'))}</button>${langToggle()}</div><h2 class="theme-title">${esc(themeName(t))}</h2>
+      <div class="wordlist">${ws.map((w) => { const d = progress.done.includes(w.id);
+        return `<button class="card ${d ? 'done' : ''}" data-go="#/word/${w.id}" ${d ? `aria-label="${esc(shortMeaning(w))} — ${esc(T('complete'))}"` : ''}><span class="emo">${w.emoji}</span>${esc(shortMeaning(w))}${d ? ' ✓' : ''}</button>`; }).join('')}</div>`;
+    bindCommon();
   }
 
   // ---- puzzle ----
-  let cur = null;
   function showPuzzle(word) {
-    const sylls = Array.from(word.korean).map((s) => ({
-      expected: s, layout: H.layoutOf(s), hasJong: !!H.decomposeSyllable(s).jong,
-      need: H.syllableToJamo(s).length, slots: H.newSlots(), ids: { cho: [], jung: [], jong: [] } }));
+    clearCelebration(); screen = 'puzzle';
     const tiles = H.buildTiles(word.korean).map((j, i) => ({ id: i, jamo: j }));
-    cur = { word, sylls, tiles, selected: null, hint: false, solved: false, msg: '' };
+    cur = { word, sylls: P.createSylls(word.korean), tiles, hint: false, solved: false, nextReady: false, shake: null };
     render();
+    if (params.get('solve') === '1') {
+      for (const j of P.solveOrder(word.korean)) { const t = cur.tiles.find((x) => x.jamo === j && !usedIds().has(x.id)); if (t) onTile(t.id); }
+    }
   }
   const usedIds = () => new Set([].concat(...cur.sylls.map((s) => [].concat(s.ids.cho, s.ids.jung, s.ids.jong))));
-
-  function status(s) {
-    const text = H.slotSyllable(s.slots), count = H.slotCount(s.slots);
-    if (text === s.expected) return 'ok';
-    if (count >= s.need) return 'wrong';
-    return '';
-  }
+  const slotLabel = (k) => T({ cho: 'slotInitial', jung: 'slotVowel', jong: 'slotFinal' }[k]);
 
   function render() {
     const { word, sylls } = cur, used = usedIds();
     const list = WORDS.filter((w) => w.theme === word.theme), idx = list.indexOf(word);
-    const labels = { cho: 'initial', jung: 'vowel', jong: 'final' };
+    const prevScroll = (app.querySelector('.ptop') || {}).scrollTop || 0;
+    const anyWrong = sylls.some((s) => P.status(s) === 'wrong');
     const sylHtml = sylls.map((s, si) => {
-      const st = status(s), text = H.slotSyllable(s.slots);
-      const slot = (k) => `<button class="slot ${s.slots[k].length ? 'filled' : ''}" data-syl="${si}" data-kind="${k}" aria-label="syllable ${si + 1} ${labels[k]} slot">${s.slots[k].length ? esc(H.slotDisplay(k, s.slots[k])) : `<small>${labels[k]}</small>`}</button>`;
-      return `<div class="syl ${st}"><div class="result">${text && H.slotCount(s.slots) >= s.need - 0 ? esc(text) : '&nbsp;'}</div>
-        <div class="grid ${s.layout}">${slot('cho')}${slot('jung')}${s.hasJong ? slot('jong').replace('class="slot', 'class="jong slot') : ''}</div></div>`;
+      const st = P.status(s), text = H.slotSyllable(s.slots), shake = cur.shake === si ? ' shake' : '';
+      const slot = (k) => { const l = s.slots[k], lab = slotLabel(k);
+        return `<button class="slot ${k === 'jong' ? 'jong' : ''} ${l.length ? 'filled' : ''}" data-syl="${si}" data-kind="${k}" aria-label="${esc(l.length ? T('slotAriaFilled', { n: si + 1, slot: lab, jamo: H.slotDisplay(k, l) }) : T('slotAria', { n: si + 1, slot: lab }))}">${l.length ? esc(H.slotDisplay(k, l)) : `<small>${esc(lab)}</small>`}</button>`; };
+      return `<div class="syl ${st}${shake}"><div class="result">${text && H.slotCount(s.slots) >= s.need ? esc(text) : '&nbsp;'}</div>
+        <div class="grid ${s.layout}">${slot('cho')}${slot('jung')}${s.hasJong ? slot('jong') : ''}</div></div>`;
     }).join('');
-    const doneCount = progress.done.filter((id) => list.some((w) => w.id === id)).length;
     app.className = 'puzzle' + (sylls.length >= 4 ? ' many' : '');
-    app.innerHTML = `<div class="ptop"><div class="topbar"><button class="btn" data-go="#/theme/${word.theme}">← Back</button>
-      <span>Word ${idx + 1} of ${list.length}</span><button class="btn" id="hint" ${cur.solved ? 'disabled' : ''}>Hint (${progress.hints[word.id] || 0})</button></div>
-      <div class="pic" role="img" aria-label="${esc(word.english)}">${word.emoji}</div>
-      <div class="meaning">${esc(word.english)}</div>
+    app.innerHTML = `<div class="ptop"><div class="topbar"><button class="btn" data-go="#/theme/${word.theme}">← ${esc(T('back'))}</button>${langToggle()}
+      <button class="btn" id="hint" ${cur.solved ? 'disabled' : ''}>${esc(T('hint'))} (${progress.hints[word.id] || 0})</button></div>
+      <div class="wordno">${esc(T('wordNofM', { n: idx + 1, m: list.length }))}</div>
+      <div class="pic" role="img" aria-label="${esc(meaning(word))}">${word.emoji}</div>
+      <div class="meaning">${esc(meaning(word))}</div>
       <div class="hintline">${cur.hint || cur.solved ? esc(word.romanization) : ''}</div>
-      <p class="howto">Tap a block, then a slot. Put ㅗ and ㅏ together in the same vowel slot to make ㅘ.</p>
+      <p class="howto">${esc(T('puzzleTip'))}</p>
       <div class="syllables">${sylHtml}</div>
-      <div class="msg">${esc(cur.msg)}</div></div>
-      <div class="pdock">${cur.solved ? `<div class="success"><div class="ko">${esc(word.korean)}</div><div class="rom">${esc(word.romanization)}</div><div>Great job! ✓</div>
-        <div class="actions" style="margin-top:8px"><button class="btn" id="say">🔊 Listen</button><button class="btn primary" id="next">${idx + 1 < list.length ? 'Next' : 'Finish'}</button></div></div>`
-      : `<div class="tray">${cur.tiles.filter((t) => !used.has(t.id)).map((t) => `<button class="tile ${cur.selected === t.id ? 'sel' : ''}" data-tile="${t.id}">${esc(t.jamo)}</button>`).join('')}</div>`}</div>`;
-    app.querySelectorAll('[data-go]').forEach((b) => b.onclick = () => go(b.dataset.go));
+      <div class="msg" role="status">${anyWrong ? esc(T('notQuite')) : ''}</div></div>
+      <div class="pdock"><div class="tray" role="group" aria-label="${esc(T('trayAria'))}">${cur.tiles.filter((t) => !used.has(t.id)).map((t) => `<button class="tile" data-tile="${t.id}" aria-label="${esc(T('tileAria', { jamo: t.jamo }))}">${esc(t.jamo)}</button>`).join('')}</div></div>`;
+    cur.shake = null;
+    bindCommon();
+    const pt = app.querySelector('.ptop'); if (pt) pt.scrollTop = prevScroll;
     const hb = document.getElementById('hint');
     if (hb) hb.onclick = () => { if (!cur.hint) { cur.hint = true; progress.hints[word.id] = (progress.hints[word.id] || 0) + 1; save(); } render(); };
-    if (cur.solved) {
-      document.getElementById('say').onclick = () => speak(word.korean);
-      document.getElementById('next').onclick = () => go(idx + 1 < list.length ? '#/word/' + list[idx + 1].id : '#/theme/' + word.theme);
-    }
     app.querySelectorAll('.slot').forEach((el) => el.onclick = () => onSlot(+el.dataset.syl, el.dataset.kind));
-    app.querySelectorAll('.tile').forEach(bindTile);
+    app.querySelectorAll('.tile').forEach((el) => el.onclick = () => onTile(+el.dataset.tile));
+    if (cur.solved) renderCelebration();
   }
 
-  function speak(text) {
-    try {
-      if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') return;
-      const u = new SpeechSynthesisUtterance(text); u.lang = 'ko-KR'; u.rate = 0.85;
-      window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
-    } catch (e) { /* silently skip */ }
-  }
-
-  function place(tileId, si, kind) {
-    const tile = cur.tiles.find((t) => t.id === tileId), s = cur.sylls[si];
-    const r = H.placeInSlot(s.slots, kind, tile.jamo);
-    if (!r.ok) { cur.msg = "That block doesn't fit there."; cur.selected = null; return render(); }
-    s.ids[kind].push(tileId); cur.selected = null; cur.msg = '';
-    if (status(s) === 'wrong') cur.msg = 'Not quite! Tap a block in that syllable to take it back.';
-    if (cur.sylls.every((x) => status(x) === 'ok')) {
-      cur.solved = true; cur.msg = '';
+  // tap a tile -> it goes into the next free slot
+  function onTile(tileId) {
+    if (cur.solved) return;
+    const tile = cur.tiles.find((t) => t.id === tileId);
+    if (!tile || usedIds().has(tileId)) return;
+    const tg = P.place(cur.sylls, tile.jamo);
+    if (!tg) return;
+    cur.sylls[tg.si].ids[tg.kind].push(tileId);
+    if (P.status(cur.sylls[tg.si]) === 'wrong') cur.shake = tg.si;
+    if (P.isSolved(cur.sylls, cur.word.korean)) {
+      cur.solved = true; cur.shake = null;
       if (!progress.done.includes(cur.word.id)) { progress.done.push(cur.word.id); save(); }
-      speak(cur.word.korean);
+      render();
+      celebrate();
+      return;
     }
     render();
   }
+  // tap a placed jamo -> back to the tray
   function onSlot(si, kind) {
     if (cur.solved) return;
-    if (cur.selected !== null) return place(cur.selected, si, kind);
-    const s = cur.sylls[si];
-    if (s.slots[kind].length) { H.removeFromSlot(s.slots, kind); s.ids[kind].pop(); cur.msg = ''; render(); }
+    if (P.remove(cur.sylls, si, kind) !== null) { cur.sylls[si].ids[kind].pop(); render(); }
   }
 
-  // tap to select; drag (pointer) to drop on a slot
-  function bindTile(el) {
-    const id = +el.dataset.tile;
-    el.addEventListener('pointerdown', (e) => {
-      if (e.button) return;
-      const x0 = e.clientX, y0 = e.clientY; let ghost = null, last = null;
-      const move = (ev) => {
-        if (!ghost && Math.hypot(ev.clientX - x0, ev.clientY - y0) > 8) {
-          ghost = el.cloneNode(true); ghost.classList.add('ghost-tile'); document.body.appendChild(ghost);
-        }
-        if (ghost) {
-          ghost.style.left = ev.clientX + 'px'; ghost.style.top = ev.clientY + 'px';
-          const t = document.elementFromPoint(ev.clientX, ev.clientY), sl = t && t.closest && t.closest('.slot');
-          if (last && last !== sl) last.classList.remove('target');
-          if (sl) sl.classList.add('target'); last = sl;
-        }
-      };
-      const up = (ev) => {
-        window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up);
-        if (!ghost) { cur.selected = cur.selected === id ? null : id; cur.msg = ''; return render(); }
-        ghost.remove();
-        const t = document.elementFromPoint(ev.clientX, ev.clientY), sl = t && t.closest && t.closest('.slot');
-        if (sl && ev.type === 'pointerup') place(id, +sl.dataset.syl, sl.dataset.kind); else render();
-      };
-      window.addEventListener('pointermove', move); window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up);
-    });
+  // ---- celebration: big message + canvas fireworks + speech + Next Stage ----
+  function celebrate() {
+    const still = params.get('still') === '1';
+    const word = cur.word;
+    if (testMode.fx) window.HangulFx.celebrate(still ? { still: 350 } : {});
+    if (still) { cur.nextReady = true; renderCelebration(); return; }
+    const ready = () => { if (cur && cur.word === word && !cur.nextReady) { cur.nextReady = true; updateNext(); } };
+    speak(word.korean, ready);
+  }
+  function speak(text, done) {
+    let fired = false; const fin = () => { if (!fired) { fired = true; if (done) done(); } };
+    try {
+      if (testMode.speech && 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined') {
+        const u = new SpeechSynthesisUtterance(text); u.lang = 'ko-KR'; u.rate = 0.85;
+        u.onend = fin; u.onerror = fin;
+        window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
+        setTimeout(fin, 1800); return;
+      }
+    } catch (e) { /* silently skip */ }
+    setTimeout(fin, 500);
+  }
+  function clearCelebration() {
+    const o = document.getElementById('celebrate'); if (o) o.remove();
+    if (window.HangulFx) window.HangulFx.stop();
+  }
+  function updateNext() {
+    const b = document.getElementById('next'); if (b) { b.classList.add('ready'); b.disabled = false; }
+  }
+  function renderCelebration() {
+    const { word } = cur;
+    const list = WORDS.filter((w) => w.theme === word.theme), idx = list.indexOf(word), last = idx + 1 >= list.length;
+    let o = document.getElementById('celebrate');
+    if (!o) { o = document.createElement('div'); o.id = 'celebrate'; document.body.appendChild(o); }
+    o.className = 'celebrate' + (params.get('still') === '1' ? ' still' : ''); o.setAttribute('role', 'dialog'); o.setAttribute('aria-label', T('celebrationAria'));
+    o.innerHTML = `<div class="toprow">${langToggle()}</div><div class="cel-body"><div class="big" lang="${lang}">${esc(T('correct'))}</div>
+      <div class="ko">${esc(word.korean)}</div><div class="rom">${esc(word.romanization)}</div><div class="cel-meaning">${esc(meaning(word))}</div>
+      <div class="actions"><button class="btn" id="say">🔊 ${esc(T('listen'))}</button>
+      <button class="btn primary ${cur.nextReady ? 'ready' : ''}" id="next" ${cur.nextReady ? '' : 'disabled'}>${esc(T(last ? 'finish' : 'nextStage'))}</button></div></div>`;
+    o.querySelectorAll('[data-lang]').forEach((b) => b.onclick = () => setLang(b.dataset.lang));
+    document.getElementById('say').onclick = () => speak(word.korean);
+    document.getElementById('next').onclick = () => go(last ? '#/' : '#/word/' + list[idx + 1].id);
   }
 
-  window.HangulGame = { route };
-  route();
+  window.HangulGame = { route, setTest: (o) => Object.assign(testMode, o), open: (id) => showPuzzle(byId(id)), setLang, getLang: () => lang, state: () => cur };
+  if (!window.__noAutoRoute) route();
 })();
