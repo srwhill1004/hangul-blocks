@@ -1,0 +1,39 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>tray stable</title><link rel="stylesheet" href="../css/style.css"></head>
+<body><pre id="out">running…</pre><style>*{animation:none!important;transition:none!important}</style><main id="app"></main>
+<script src="../js/hangul.js"></script><script src="../js/words.js"></script><script src="../js/i18n.js"></script><script src="../js/puzzle.js"></script><script src="../js/fx.js"></script>
+<script>window.__noAutoRoute = true;</script>
+<script src="../js/game.js"></script>
+<script>
+(async function(){
+  const out=document.getElementById('out'), G=window.HangulGame, app=document.getElementById('app'), errs=[];
+  const wait=(ms)=>new Promise(r=>setTimeout(r,ms));
+  const snap=()=>{ const m={}; app.querySelectorAll('.tile').forEach(el=>{ const r=el.getBoundingClientRect(); m[el.dataset.tile]={x:r.x,y:r.y,w:r.width,h:r.height,used:el.classList.contains('used'),text:el.textContent}; }); return m; };
+  const same=(a,b)=>['x','y','w','h'].every(k=>Math.abs(a[k]-b[k])<=1);
+  try{
+    G.setTest({fx:false,speech:false});
+    for(const id of ['mul','sagwa','hakgyo']){
+      G.open(id); await wait(700); // let entry animations finish
+      const s0=snap(), ids=Object.keys(s0);
+      if(ids.length<3){ errs.push(id+' too few tiles'); continue; }
+      const first=window.HangulPuzzle.solveOrder(G.state().word.korean)[0];
+      const tid=ids.find(k=>s0[k].text===first);
+      app.querySelector('.tile[data-tile="'+tid+'"]').click(); await wait(700);
+      const s1=snap();
+      if(Object.keys(s1).length!==ids.length) errs.push(id+' tile count changed '+ids.length+'->'+Object.keys(s1).length);
+      for(const k of ids){
+        if(!s1[k]) { errs.push(id+' tile '+k+' missing'); continue; }
+        if(!same(s0[k],s1[k])) errs.push(id+' tile '+k+(k===tid?' (placeholder)':'')+' moved');
+      }
+      if(!s1[tid]||!s1[tid].used||s1[tid].text!=='') errs.push(id+' used tile is not an empty placeholder');
+      // second tap, then return the first tile via its slot
+      const slot=app.querySelector('.slot.filled'); if(!slot){ errs.push(id+' no filled slot'); continue; }
+      slot.click(); await wait(700);
+      const s2=snap();
+      for(const k of ids){ if(!s2[k]||!same(s0[k],s2[k])) errs.push(id+' tile '+k+' not back at original spot'); }
+      if(s2[tid]&&(s2[tid].used||s2[tid].text!==s0[tid].text)) errs.push(id+' tile did not reappear');
+    }
+  }catch(e){ errs.push('exception '+e.message); }
+  out.textContent=errs.length?'TRAY_STABLE_FAIL '+errs.join('; '):'TRAY_STABLE_PASS';
+  document.title=out.textContent;
+})();
+</script></body></html>

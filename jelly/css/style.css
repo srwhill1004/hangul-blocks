@@ -64,6 +64,7 @@ background:linear-gradient(180deg,rgba(255,255,255,.65),rgba(255,255,255,.3));bo
 box-shadow:inset 0 3px 6px rgba(255,255,255,.9),inset 0 -4px 8px rgba(150,120,190,.15),0 -2px 14px rgba(120,110,150,.15)}
 .tile{width:50px;height:50px;border-radius:18px;font-size:1.6rem;font-weight:800;touch-action:manipulation;user-select:none;-webkit-user-select:none;display:flex;align-items:center;justify-content:center;padding:0;animation:bounce-in .35s cubic-bezier(.3,1.6,.5,1) backwards}
 .tile:active{animation:squash .3s cubic-bezier(.3,1.6,.5,1) forwards}
+.tile.used{background:rgba(255,255,255,.25);border:2px dashed rgba(255,255,255,.8);box-shadow:none;opacity:.5;pointer-events:none;animation:none;transform:none}
 .msg{min-height:1.5em;text-align:center;color:var(--bad);font-weight:600}
 .actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 @keyframes shake{15%{transform:translateX(-8px) scale(1.04,.96)}35%{transform:translateX(7px) scale(.97,1.03)}55%{transform:translateX(-5px)}75%{transform:translateX(3px)}}

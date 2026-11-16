@@ -34,7 +34,7 @@ window.__noAutoRoute = true;
         if(document.getElementById('check')||/确认|Check|Submit/.test(text())) errs.push(w.id+' has a confirm button');
         const order=window.HangulPuzzle.solveOrder(w.korean);
         for(let i=0;i<order.length;i++){
-          const tile=[...app.querySelectorAll('.tile')].find(b=>b.textContent===order[i]);
+          const tile=[...app.querySelectorAll('.tile:not(.used)')].find(b=>b.textContent===order[i]);
           if(!tile){errs.push(lang+' '+w.id+' no tile '+order[i]);break;}
           if(document.getElementById('celebrate')) errs.push(w.id+' celebration before last jamo');
           tile.click();
@@ -48,12 +48,12 @@ window.__noAutoRoute = true;
     }
     // 3) a wrong full answer gives no celebration; slot tap returns tile
     G.setLang('en'); G.open('mul');
-    for(const j of ['ㅁ','ㅜ',null]){ const ts=[...app.querySelectorAll('.tile')]; const t=j?ts.find(b=>b.textContent===j):ts.find(b=>b.textContent!=='ㄹ'); if(t) t.click(); else errs.push('mul tile '+j); }
+    for(const j of ['ㅁ','ㅜ',null]){ const ts=[...app.querySelectorAll('.tile:not(.used)')]; const t=j?ts.find(b=>b.textContent===j):ts.find(b=>b.textContent!=='ㄹ'); if(t) t.click(); else errs.push('mul tile '+j); }
     if(document.getElementById('celebrate')) errs.push('celebration on wrong answer');
     if(!app.querySelector('.syl.wrong')) errs.push('no wrong marker');
     if(app.querySelector('.msg').textContent!==I.STRINGS.en.notQuite) errs.push('no notQuite msg');
-    const before=app.querySelectorAll('.tile').length; app.querySelector('.slot.jong').click();
-    if(app.querySelectorAll('.tile').length!==before+1) errs.push('slot tap did not return tile');
+    const before=app.querySelectorAll('.tile:not(.used)').length; app.querySelector('.slot.jong').click();
+    if(app.querySelectorAll('.tile:not(.used)').length!==before+1) errs.push('slot tap did not return tile');
     // 4) i18n: every key present; zh screens have no stray English
     for(const k of Object.keys(I.STRINGS.en)) if(!I.STRINGS.zh[k]) errs.push('zh missing '+k);
     G.setLang('zh'); G.open('sagwa');

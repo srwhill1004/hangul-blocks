@@ -121,7 +121,7 @@
       <p class="howto">${esc(T('puzzleTip'))}</p>
       <div class="syllables">${sylHtml}</div>
       <div class="msg" role="status">${anyWrong ? esc(T('notQuite')) : ''}</div></div>
-      <div class="pdock"><div class="tray" role="group" aria-label="${esc(T('trayAria'))}">${cur.tiles.filter((t) => !used.has(t.id)).map((t) => `<button class="tile" data-tile="${t.id}" aria-label="${esc(T('tileAria', { jamo: t.jamo }))}">${esc(t.jamo)}</button>`).join('')}</div></div>`;
+      <div class="pdock"><div class="tray" role="group" aria-label="${esc(T('trayAria'))}">${cur.tiles.map((t) => used.has(t.id) ? `<button class="tile used" data-tile="${t.id}" disabled tabindex="-1" aria-hidden="true"></button>` : `<button class="tile" data-tile="${t.id}" aria-label="${esc(T('tileAria', { jamo: t.jamo }))}">${esc(t.jamo)}</button>`).join('')}</div></div>`;
     cur.shake = null;
     bindCommon();
     const pt = app.querySelector('.ptop'); if (pt) pt.scrollTop = prevScroll;

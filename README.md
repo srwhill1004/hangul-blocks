@@ -29,3 +29,4 @@ Revised Romanization of Korean (National Institute of Korean Language, 2000), e.
 - Open `tests/browser-check.html`; prints `BROWSER_CHECK_PASS` or `BROWSER_CHECK_FAIL` (engine assembly, tapping real tiles for 30 words in en and zh, wrong-answer behavior, no stray English in zh). Headless: `google-chrome --headless=new --no-sandbox --dump-dom file://$PWD/tests/browser-check.html`
 
 Static HTML/JS/CSS only; no external assets or libraries.
+- Tray tiles keep a fixed layout: used tiles stay as dashed empty placeholders and return to their original spot (`tests/tray-stable.html`).
