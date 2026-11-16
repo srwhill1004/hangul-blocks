@@ -1,0 +1,23 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>browser check</title></head>
+<body><pre id="out">running…</pre>
+<script src="../js/hangul.js"></script><script src="../js/words.js"></script>
+<script>
+(function(){
+  const out=document.getElementById('out'), H=window.Hangul, W=window.HangulData.WORDS, errs=[];
+  try{
+    if(W.length!==30) errs.push('word count '+W.length);
+    for(const w of W){
+      const tiles=H.buildTiles(w.korean); const pool=tiles.slice(); let built='';
+      for(const s of Array.from(w.korean)){
+        const slots=H.newSlots(), d=H.decomposeSyllable(s);
+        const seq=[['cho',d.cho]].concat(H.splitVowel(d.jung).map(j=>['jung',j]),H.splitFinal(d.jong).map(j=>['jong',j]));
+        for(const [k,j] of seq){ const i=pool.indexOf(j); if(i<0){errs.push(w.id+' missing tile '+j);continue;} pool.splice(i,1);
+          if(!H.placeInSlot(slots,k,j).ok) errs.push(w.id+' cannot place '+j+' in '+k); }
+        built+=H.slotSyllable(slots)||'?';
+      }
+      if(built!==w.korean) errs.push(w.id+' built '+built+' != '+w.korean);
+    }
+  }catch(e){errs.push('exception '+e.message);}
+  out.textContent=errs.length?'BROWSER_CHECK_FAIL '+errs.join('; '):'BROWSER_CHECK_PASS 30 words assembled';
+})();
+</script></body></html>

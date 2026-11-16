@@ -1,0 +1,49 @@
+:root{--bg:#f7f0e1;--paper:#fffaf0;--ink:#4a3a2a;--muted:#8a7760;--wood:#e3c28f;--wood-d:#c9a066;--line:#d9c7a5;--ok:#5f8f5a;--bad:#b5533c;--accent:#c46a3b}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow-x:hidden}
+#app{max-width:480px;margin:0 auto;padding:16px 16px calc(24px + env(safe-area-inset-bottom));min-height:100vh}
+h1{font-size:2rem;margin:8px 0 4px;text-align:center}
+h2{font-size:1.25rem;margin:0}
+.sub{text-align:center;color:var(--muted);margin:0 0 16px;line-height:1.4}
+button{font:inherit;color:inherit;cursor:pointer}
+.btn{min-height:44px;padding:8px 18px;border:2px solid var(--wood-d);background:var(--wood);border-radius:12px;font-weight:600;box-shadow:0 2px 0 var(--wood-d)}
+.btn:active{transform:translateY(2px);box-shadow:none}
+.btn.primary{background:var(--accent);border-color:#9d4f27;color:#fff;box-shadow:0 2px 0 #9d4f27}
+.btn.ghost{background:transparent;box-shadow:none;border-color:var(--line)}
+.card{display:block;width:100%;text-align:left;background:var(--paper);border:2px solid var(--line);border-radius:14px;padding:14px 16px;margin:10px 0;min-height:56px}
+.card b{display:block;font-size:1.1rem}
+.card span{color:var(--muted);font-size:.9rem}
+.bar{height:12px;border-radius:8px;background:#eadcc0;overflow:hidden;margin:6px 0 18px}
+.bar i{display:block;height:100%;background:var(--ok)}
+.progress-label{text-align:center;font-weight:600}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.wordlist{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.wordlist .card{margin:0;text-align:center;padding:10px}
+.wordlist .emo{font-size:2rem;display:block}
+.wordlist .done{border-color:var(--ok);background:#eef5e6}
+.pic{font-size:5rem;line-height:1.1;text-align:center;margin-top:4px}
+.meaning{text-align:center;font-size:1.4rem;font-weight:700;margin:4px 0 8px}
+.hintline{min-height:1.6em;text-align:center;color:var(--accent);font-weight:600;font-size:1.1rem}
+.syllables{display:flex;flex-wrap:wrap;justify-content:center;gap:12px 14px;margin:10px 0}
+.syl{width:112px;padding:6px;background:var(--paper);border:2px solid var(--line);border-radius:14px;text-align:center}
+.syl.ok{border-color:var(--ok)}
+.syl.wrong{border-color:var(--bad);animation:shake .3s}
+.result{height:2rem;font-size:1.5rem;font-weight:700;line-height:2rem}
+.grid{display:grid;gap:4px;grid-template-columns:1fr 1fr}
+.grid.h,.grid.c{grid-template-columns:1fr}
+.grid.h .jong,.grid.c .jong{grid-column:auto}
+.grid .jong{grid-column:1/-1}
+.slot{min-height:46px;min-width:46px;border:2px dashed var(--wood-d);border-radius:10px;background:#f3e8d0;font-size:1.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0}
+.slot small{font-size:.7rem;color:var(--muted);font-weight:500}
+.slot.filled{border-style:solid;background:var(--wood)}
+.slot.target{background:#ffe9b8}
+.tray{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:14px 0;min-height:56px;padding:10px;background:#efe1c3;border-radius:14px}
+.tile{width:50px;height:50px;border:2px solid var(--wood-d);border-radius:10px;background:linear-gradient(#f0d4a0,#e3c28f);font-size:1.6rem;font-weight:700;box-shadow:0 3px 0 var(--wood-d);touch-action:none;user-select:none;-webkit-user-select:none;display:flex;align-items:center;justify-content:center;padding:0}
+.tile.sel{outline:3px solid var(--accent);transform:translateY(-3px)}
+.ghost-tile{position:fixed;z-index:99;pointer-events:none;opacity:.9;transform:translate(-50%,-50%)}
+.msg{min-height:1.5em;text-align:center;color:var(--bad);font-weight:600}
+.success{text-align:center;background:#eef5e6;border:2px solid var(--ok);border-radius:14px;padding:12px;margin:8px 0}
+.success .ko{font-size:2.2rem;font-weight:800}
+.success .rom{font-size:1.2rem;color:var(--ok);font-weight:700}
+.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
