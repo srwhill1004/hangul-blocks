@@ -68,3 +68,4 @@
 `/workspace/dev/hangul-puzzle/index.html` (예: `file:///workspace/dev/hangul-puzzle/index.html#/word/sagwa`)
 
 ## 로컬 커밋
+`628bce1` (main, 로컬 전용; 이 파일 자체가 포함된 직후 상태 기준)
